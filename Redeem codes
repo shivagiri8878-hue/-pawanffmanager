@@ -1,0 +1,338 @@
+<!--
+Single-file HTML : Redeem-code store (use on GitHub Pages / Netlify for HTTPS)
+Features:
+- 50 pre-generated redeem codes (stored in `codes` array)
+- Customer can enter or pick one of the available codes
+- Valid code = half-price applied
+- "Simulated" payment: shows UPI string and "Mark as Paid"
+- After payment, chosen redeem code is marked used (persisted in localStorage)
+- Receipt/Success screen and copy button
+
+Host this file on GitHub Pages / Netlify to serve via HTTPS.
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Redeem Code Store — Demo</title>
+  <style>
+    :root{--bg:#0f1724;--card:#111827;--muted:#9aa4b2;--accent:#06b6d4;--success:#10b981}
+    *{box-sizing:border-box;font-family:Inter, system-ui, Arial, Helvetica, sans-serif}
+    body{margin:0;background:linear-gradient(180deg,#071124, #0b1220);color:#e6eef6;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .wrap{max-width:980px;width:100%}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:0;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 380px;gap:18px}
+    @media(max-width:880px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);padding:18px;border-radius:14px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    .product{display:flex;flex-direction:column;gap:12px}
+    .price{font-size:22px;font-weight:700}
+    .small{color:var(--muted);font-size:13px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input, select{width:100%;padding:10px;border-radius:8px;border:1px solid #263345;background:transparent;color:inherit}
+    button{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:0;background:var(--accent);color:#042027;font-weight:700;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid #274151;color:var(--muted)}
+    .muted{color:var(--muted)}
+    .status{display:flex;align-items:center;gap:8px}
+    .badge{padding:6px 10px;border-radius:999px;background:#05282a;color:#9ff0ef;font-weight:700;font-size:12px}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .row{display:flex;gap:8px;align-items:center}
+    .used{opacity:.45;text-decoration:line-through}
+    .success-screen{text-align:center;padding:20px}
+    .copy-btn{background:#1f2937;color:#fff;padding:8px;border-radius:8px;border:0}
+    footer{margin-top:12px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Redeem-Code Store — Real</h1>
+        <p class="lead">50 pre-made redeem codes. Use a code to buy at half price. (Simulated payment)</p>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div class="small">Host on <strong>GitHub Pages</strong> or <strong>Netlify</strong> for HTTPS</div>
+        <div class="small">Local browser data saved to <code>localStorage</code></div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card product">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div class="small">Product</div>
+              <div style="font-weight:800;font-size:18px">Diamond Pack — 100 Diamonds</div>
+              <div class="small">Original price: <s>₹500</s></div>
+            </div>
+            <div style="text-align:right">
+              <div class="price" id="price">₹250</div>
+              <div class="small">(Half price when valid redeem applied)</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label for="codeSelect">Choose an available redeem code (or paste below)</label>
+          <select id="codeSelect"><option value="">-- Show available codes --</option></select>
+          <div style="height:8px"></div>
+          <label for="codeInput">Or paste redeem code</label>
+          <input id="codeInput" placeholder="Enter redeem code here">
+
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="applyBtn">Apply Redeem</button>
+            <button class="ghost" id="showAllBtn">Refresh Available</button>
+            <button class="ghost" id="resetBtn">Reset All (dev)</button>
+          </div>
+
+          <div id="applyMsg" class="small muted" style="margin-top:8px"></div>
+        </div>
+
+        <hr style="opacity:.06;margin:8px 0">
+
+        <div>
+          <label>Customer name</label>
+          <input id="custName" placeholder="Type your name">
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button id="proceedBtn">Proceed to Pay</button>
+            <button class="ghost" id="viewUsedBtn">View Used Codes</button>
+          </div>
+        </div>
+
+        <div id="paymentArea" style="display:none;margin-top:12px">
+          <div class="card" style="background:#071627;padding:12px">
+            <div class="small">Pay using UPI (simulated)</div>
+            <div style="margin-top:8px">UPI ID: <strong>demo@upi</strong></div>
+            <div class="small">Amount: <span id="payAmount">₹250</span></div>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button id="iPaidBtn">I Paid — Confirm</button>
+              <button class="ghost" id="cancelPayBtn">Cancel</button>
+              <button class="ghost" id="downloadReceiptBtn">Download Receipt</button>
+            </div>
+            <div id="payMsg" class="small muted" style="margin-top:8px"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <aside class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">Available codes</div>
+            <div style="font-weight:800;font-size:18px" id="availCount">50</div>
+          </div>
+          <div>
+            <div class="small">Used codes</div>
+            <div style="font-weight:800;font-size:18px" id="usedCount">0</div>
+          </div>
+        </div>
+
+        <hr style="opacity:.06;margin:10px 0">
+
+        <div>
+          <div class="small">Quick list (unused)</div>
+          <div id="quickList" style="margin-top:8px;max-height:260px;overflow:auto"></div>
+        </div>
+
+        <hr style="opacity:.06;margin:10px 0">
+
+        <div>
+          <div class="small">Last purchase</div>
+          <div id="lastPurchase" style="margin-top:8px">—</div>
+        </div>
+
+        <footer>
+          <div>Note: This demo simulates a purchase flow. To accept real payments integrate a payment gateway.</div>
+        </footer>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIG ---
+    const ORIGINAL_PRICE = 500;
+    const HALF_PRICE = ORIGINAL_PRICE / 2;
+
+    // 50 pre-made codes (random-looking). In production you would store these server-side.
+    const codes = (function(){
+      const arr = [];
+      for(let i=1;i<=50;i++){
+        const rnd = Math.random().toString(36).slice(2,8).toUpperCase();
+        arr.push('RF'+String(i).padStart(2,'0')+'-'+rnd);
+      }
+      return arr;
+    })();
+
+    // localStorage keys
+    const LS_USED = 'redeem_demo_used_v1';
+    const LS_LAST = 'redeem_demo_last_v1';
+
+    // --- state ---
+    let used = JSON.parse(localStorage.getItem(LS_USED) || '[]');
+
+    // DOM refs
+    const codeSelect = document.getElementById('codeSelect');
+    const codeInput = document.getElementById('codeInput');
+    const applyBtn = document.getElementById('applyBtn');
+    const applyMsg = document.getElementById('applyMsg');
+    const showAllBtn = document.getElementById('showAllBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const availCount = document.getElementById('availCount');
+    const usedCount = document.getElementById('usedCount');
+    const quickList = document.getElementById('quickList');
+    const priceElm = document.getElementById('price');
+    const proceedBtn = document.getElementById('proceedBtn');
+    const paymentArea = document.getElementById('paymentArea');
+    const payAmount = document.getElementById('payAmount');
+    const iPaidBtn = document.getElementById('iPaidBtn');
+    const cancelPayBtn = document.getElementById('cancelPayBtn');
+    const payMsg = document.getElementById('payMsg');
+    const lastPurchase = document.getElementById('lastPurchase');
+    const viewUsedBtn = document.getElementById('viewUsedBtn');
+    const downloadReceiptBtn = document.getElementById('downloadReceiptBtn');
+
+    // current selected code when applying
+    let currentAppliedCode = null;
+    let priceToPay = ORIGINAL_PRICE;
+
+    // helpers
+    function saveUsed(){ localStorage.setItem(LS_USED, JSON.stringify(used)); }
+    function setMsg(el,text,ok=true){ el.textContent = text; el.style.color = ok ? 'lightgreen' : '#ff8a8a'; }
+
+    function refreshUI(){
+      const unused = codes.filter(c=>!used.includes(c));
+      availCount.textContent = unused.length;
+      usedCount.textContent = used.length;
+
+      // fill select
+      codeSelect.innerHTML = '<option value="">-- Show available codes --</option>' + unused.map(c=>`<option value="${c}">${c}</option>`).join('');
+
+      // quick list
+      quickList.innerHTML = '';
+      unused.slice(0,20).forEach(c=>{
+        const d = document.createElement('div'); d.className='row'; d.textContent=c;
+        quickList.appendChild(d);
+      });
+
+      // price display
+      priceElm.textContent = '₹' + (priceToPay);
+
+      // last purchase
+      const last = localStorage.getItem(LS_LAST);
+      lastPurchase.innerHTML = last ? last : '<span class="muted">—</span>';
+    }
+
+    // apply redeem
+    applyBtn.addEventListener('click',()=>{
+      const v = codeInput.value.trim() || codeSelect.value;
+      if(!v){ setMsg(applyMsg,'Please choose or paste a redeem code first',false); return; }
+      if(!codes.includes(v)){ setMsg(applyMsg,'Invalid code — not in this campaign',false); return; }
+      if(used.includes(v)){ setMsg(applyMsg,'That code is already used',false); return; }
+      // valid
+      currentAppliedCode = v;
+      priceToPay = HALF_PRICE;
+      setMsg(applyMsg,`Code applied — half price ₹${priceToPay}`);
+      refreshUI();
+    });
+
+    // proceed to payment
+    proceedBtn.addEventListener('click',()=>{
+      const name = document.getElementById('custName').value.trim();
+      if(!name){ alert('Please enter your name before proceeding'); return; }
+      // If user hasn't applied a valid code, we'll proceed at full price
+      if(!currentAppliedCode){
+        if(!confirm('No redeem code applied. Continue at full price?')) return;
+        priceToPay = ORIGINAL_PRICE;
+      }
+      paymentArea.style.display = 'block';
+      payAmount.textContent = '₹' + priceToPay;
+      payMsg.textContent = '';
+    });
+
+    // simulated payment confirmation
+    iPaidBtn.addEventListener('click',()=>{
+      // simulate verifying payment then finalizing purchase
+      if(currentAppliedCode && used.includes(currentAppliedCode)){
+        payMsg.textContent = 'Error: This code was used while you were paying.'; payMsg.style.color = '#ff8a8a'; return;
+      }
+      const buyer = document.getElementById('custName').value.trim();
+      const codeToUse = currentAppliedCode || null;
+      // mark as used if a code was used
+      if(codeToUse){ used.push(codeToUse); saveUsed(); }
+
+      // create receipt
+      const receipt = {
+        buyer: buyer,
+        amount: priceToPay,
+        code: codeToUse || '(no code)',
+        time: new Date().toLocaleString()
+      };
+      localStorage.setItem(LS_LAST, `Name: ${receipt.buyer} \nAmount: ₹${receipt.amount} \nCode: ${receipt.code} \nTime: ${receipt.time}`);
+
+      // SUCCESS UI
+      paymentArea.style.display = 'none';
+      currentAppliedCode = null; priceToPay = ORIGINAL_PRICE;
+      setMsg(applyMsg,'Purchase successful — code delivered below');
+      showSuccess(receipt);
+      refreshUI();
+    });
+
+    cancelPayBtn.addEventListener('click',()=>{ paymentArea.style.display='none'; });
+
+    // show success and deliver code
+    function showSuccess(receipt){
+      const wrapper = document.createElement('div'); wrapper.className='card success-screen';
+      wrapper.innerHTML = `
+        <h3 style="margin-top:0;color:var(--success)">Purchase Successful ✅</h3>
+        <div class="small">Thanks, <strong>${receipt.buyer}</strong></div>
+        <div style="margin-top:8px;font-weight:800">Amount paid: ₹${receipt.amount}</div>
+        <div style="margin-top:8px">Redeem code: <strong id="delCode">${receipt.code}</strong></div>
+        <div style="margin-top:12px"><button id="copyBtn" class="copy-btn">Copy Code</button></div>
+      `;
+      // insert at top of page
+      const main = document.querySelector('.product');
+      main.insertBefore(wrapper, main.firstChild);
+
+      document.getElementById('copyBtn').addEventListener('click',()=>{
+        const txt = document.getElementById('delCode').textContent;
+        navigator.clipboard.writeText(txt).then(()=>alert('Code copied to clipboard'));
+      });
+
+      // remove success after 14s
+      setTimeout(()=>{ wrapper.remove(); },14000);
+    }
+
+    // reset (dev only) — clears used codes
+    resetBtn.addEventListener('click',()=>{
+      if(confirm('Reset all used codes? (dev action)')){
+        used = []; saveUsed(); localStorage.removeItem(LS_LAST); currentAppliedCode=null; priceToPay=ORIGINAL_PRICE; setMsg(applyMsg,'All codes reset','true'); refreshUI();
+      }
+    });
+
+    // show used codes in alert
+    viewUsedBtn.addEventListener('click',()=>{
+      if(used.length===0) return alert('No used codes yet');
+      alert('Used codes:\n' + used.join('\n'));
+    });
+
+    // download receipt
+    downloadReceiptBtn.addEventListener('click',()=>{
+      const last = localStorage.getItem(LS_LAST);
+      if(!last) return alert('No receipt to download yet');
+      const blob = new Blob([last], {type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='receipt.txt'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // showAll / refresh
+    showAllBtn.addEventListener('click',()=>{ refreshUI(); setMsg(applyMsg,'Refreshed list'); setTimeout(()=>applyMsg.textContent='','2500'); });
+
+    // init
+    refreshUI();
+
+  </script>
+</body>
+</html>

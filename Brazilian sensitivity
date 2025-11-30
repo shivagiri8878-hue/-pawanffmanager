@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brazilian Sensitivity - Premium UI</title>
+
+  <style>
+    body{
+      margin:0;
+      background:#000;
+      color:#fff;
+      font-family:'Poppins',sans-serif;
+    }
+
+    .bg{
+      min-height:100vh;
+      background:radial-gradient(circle at top, #1a1a1a, #000 70%);
+      padding:30px;
+    }
+
+    .card{
+      backdrop-filter:blur(12px);
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:18px;
+      padding:25px;
+      margin-bottom:25px;
+      box-shadow:0 0 18px rgba(255,255,255,0.1);
+      transition:0.3s;
+    }
+    .card:hover{
+      box-shadow:0 0 28px rgba(255,255,255,0.18);
+      transform:translateY(-3px);
+    }
+
+    h1{
+      text-align:center;
+      font-size:38px;
+      font-weight:700;
+      letter-spacing:2px;
+      margin-bottom:35px;
+      text-shadow:0 0 12px #0ff;
+    }
+
+    .sens-title{
+      font-size:26px;
+      font-weight:600;
+      margin-bottom:10px;
+      color:#0ff;
+      text-shadow:0 0 8px #0ff;
+    }
+
+    .sens-row{
+      font-size:20px;
+      margin:10px 0;
+      padding:10px 0;
+      border-bottom:1px solid rgba(255,255,255,0.09);
+    }
+
+    .locked{
+      color:#0f0;
+      font-size:16px;
+      margin-bottom:15px;
+      text-shadow:0 0 10px #0f0;
+    }
+
+    .divider{
+      height:2px;
+      width:100%;
+      background:linear-gradient(90deg, transparent, #0ff, transparent);
+      margin:20px 0;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="bg">
+    <h1>Brazilian Sensitivity (Locked) — Premium UI</h1>
+
+    <div class="card">
+      <div class="sens-title">Device Sensitivity Settings</div>
+      <div class="locked">These settings are locked. Nobody can modify them.</div>
+
+      <div class="sens-row"><strong>Mobile:</strong> X: 41 • Y: 39 • Scope: 21</div>
+      <div class="sens-row"><strong>Tablet:</strong> X: 47 • Y: 44 • Scope: 23</div>
+      <div class="sens-row"><strong>PC:</strong> X: 56 • Y: 51 • Scope: 29</div>
+    </div>
+
+    <div class="card">
+      <div class="sens-title">Premium Lock Security</div>
+      <div class="divider"></div>
+      <p style="opacity:0.9;font-size:18px;">
+        Sensitivity values are hard-coded & fully protected. No user can change or edit them on website.
+      </p>
+    </div>
+  </div>
+
+<script>
+  const sensitivityLocked = true;
+
+  const sensitivity = {
+    mobile:{ x:41, y:39, scope:21 },
+    tablet:{ x:47, y:44, scope:23 },
+    pc:{ x:56, y:51, scope:29 }
+  };
+
+  // No function to modify -> fully locked
+</script>
+
+</body>
+</html>

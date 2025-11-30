@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Brazilian Sensitivity - Diamonds Store (Buy Now)</title>
+  <style>
+    :root{--bg:#000;--card:#0b0b0b;--muted:#9aa4b2;--accent:#06b6d4;--success:#10b981}
+    body{margin:0;background:linear-gradient(180deg,#000 0%,#070707 100%);color:#fff;font-family:Inter,system-ui,Arial,sans-serif}
+    .wrap{max-width:980px;margin:24px auto;padding:18px}
+    h1{text-align:center;margin:6px 0 18px;font-size:28px;color:#0ff;text-shadow:0 0 10px rgba(0,255,255,.12)}
+    .grid{display:grid;grid-template-columns:1fr 380px;gap:18px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{background:rgba(255,255,255,0.03);padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.04)}
+    .diamond-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .diamond-left{display:flex;align-items:center;gap:12px}
+    .diamond-icon{width:34px;height:34px;background:linear-gradient(180deg,#00f0ff,#007d88);clip-path:polygon(50% 0,85% 35%,70% 85%,30% 85%,15% 35%);box-shadow:0 6px 18px rgba(0,200,255,.06)}
+    .tag{background:#ff2b2b;color:#fff;padding:6px 8px;border-radius:8px;font-weight:700;margin-left:8px;font-size:12px;box-shadow:0 6px 20px rgba(255,0,0,0.08)}
+    .price{font-weight:800;color:#9ef6e9}
+    label{display:block;color:var(--muted);font-size:13px;margin:8px 0 6px}
+    input,select,button{width:100%;padding:10px;border-radius:8px;border:0;background:rgba(255,255,255,0.02);color:inherit}
+    button{cursor:pointer}
+    .btn-primary{background:linear-gradient(90deg,#06b6d4,#0ea5a3);color:#042027;font-weight:800}
+    .muted{color:var(--muted);font-size:13px}
+    .qr-wrap{text-align:center;padding:12px}
+    .success{background:rgba(16,185,129,0.07);color:var(--success);padding:10px;border-radius:8px;margin-top:10px;border:1px solid rgba(16,185,129,0.12)}
+    .danger{background:rgba(255,43,43,0.06);color:#ff8a8a;padding:8px;border-radius:8px}
+    .small{font-size:13px;color:var(--muted)}
+    .right{text-align:right}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Brazilian Sensitivity — Diamonds Store (Buy Now)</h1>
+
+    <div class="grid">
+      <!-- LEFT: product + buy form -->
+      <section class="card">
+        <div class="small">Product selection — prices already discounted / half price</div>
+        <div id="products" style="margin-top:12px">
+          <!-- JS will populate product rows -->
+        </div>
+
+        <div style="margin-top:16px">
+          <label for="ffid">Free Fire ID (required)</label>
+          <input id="ffid" placeholder="Enter your Free Fire ID">
+
+          <label for="contact">Contact Number (required)</label>
+          <input id="contact" placeholder="Enter your phone number">
+
+          <label for="selectedPack">Selected Pack</label>
+          <input id="selectedPack" disabled>
+
+          <label for="amount">Amount (₹)</label>
+          <input id="amount" disabled>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button id="generateQrBtn" class="btn-primary">Generate Payment QR & Proceed</button>
+            <button id="resetBtn" class="" style="background:transparent;border:1px solid rgba(255,255,255,0.04)">Reset</button>
+          </div>
+
+          <div id="formMsg" class="small" style="margin-top:8px"></div>
+        </div>
+
+        <div id="afterPayArea" style="display:none;margin-top:14px">
+          <div class="card">
+            <div class="small">Payment details (locked)</div>
+            <!-- Locked UPI id -->
+            <label>UPI ID</label>
+            <input id="upiId" value="Shilpagoswami1@ybl" disabled>
+            <label>Payee Name</label>
+            <input id="payeeName" value="Shilpa Goswami" disabled>
+            <div class="qr-wrap">
+              <div class="small">Scan QR (amount pre-filled) or open UPI app and pay to above UPI</div>
+              <div id="qrImage" style="margin-top:12px"></div>
+              <div class="small muted" style="margin-top:8px">UPI & QR are locked and cannot be changed from website UI.</div>
+            </div>
+
+            <div style="display:flex;gap:8px">
+              <button id="iPaidBtn" class="btn-primary">I HAVE PAID — Confirm</button>
+              <button id="cancelBtn" style="background:transparent;border:1px solid rgba(255,255,255,0.04)">Cancel</button>
+            </div>
+            <div id="payMsg" class="small" style="margin-top:8px"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT: summary + recent orders -->
+      <aside class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">Available codes / badges</div>
+            <div style="font-weight:800;font-size:18px" id="availCount">—</div>
+          </div>
+          <div class="right">
+            <div class="small">Last purchase</div>
+            <div style="font-weight:800;font-size:14px" id="lastPurchase">—</div>
+          </div>
+        </div>
+
+        <div class="divider" style="height:1px;background:rgba(255,255,255,0.04);margin:12px 0"></div>
+
+        <div>
+          <div class="small">How this works</div>
+          <ol class="small muted" style="padding-left:16px;margin-top:8px">
+            <li>Choose a diamond pack and enter your Free Fire ID + contact.</li>
+            <li>Click <strong>Generate Payment QR</strong> — a locked QR will appear with exact amount.</li>
+            <li>Pay using UPI to <strong>Shilpagoswami1@ybl</strong> and then click <strong>I HAVE PAID</strong>.</li>
+            <li>You will be shown a receipt and details — you (seller) must manually verify the payment in your UPI app before delivering.</li>
+          </ol>
+        </div>
+
+        <div style="margin-top:12px">
+          <button id="downloadOrdersBtn" class="" style="background:transparent;border:1px solid rgba(255,255,255,0.04)">Download Last Receipt</button>
+        </div>
+
+        <div id="ordersArea" style="margin-top:12px"></div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+  // --- CONFIG (locked) ---
+  const UPI_ID = 'Shilpagoswami1@ybl';          // locked — cannot be changed from UI
+  const PAYEE_NAME = 'Shilpa Goswami';         // locked — cannot be changed from UI
+  const QR_API = 'https://api.qrserver.com/v1/create-qr-code/'; // used to generate QR images
+
+  // Diamond packs (display price is HALF price — realistic)
+  const packs = [
+    {id:'p1', diamonds:100, priceOriginal:80, price:40},
+    {id:'p2', diamonds:210, priceOriginal:160, price:80},
+    {id:'p3', diamonds:530, priceOriginal:400, price:200},
+    {id:'p4', diamonds:1080, priceOriginal:800, price:400},
+    {id:'p5', diamonds:2200, priceOriginal:1600, price:800},
+  ];
+
+  // localStorage keys
+  const LS_LAST = 'bs_last_purchase_v1';
+  const LS_ORDERS = 'bs_orders_v1';
+
+  // --- state ---
+  let selectedPack = null;
+
+  // DOM refs
+  const productsEl = document.getElementById('products');
+  const availCountEl = document.getElementById('availCount');
+  const lastPurchaseEl = document.getElementById('lastPurchase');
+  const ffidInput = document.getElementById('ffid');
+  const contactInput = document.getElementById('contact');
+  const selectedPackInput = document.getElementById('selectedPack');
+  const amountInput = document.getElementById('amount');
+  const generateQrBtn = document.getElementById('generateQrBtn');
+  const afterPayArea = document.getElementById('afterPayArea');
+  const qrImageDiv = document.getElementById('qrImage');
+  const iPaidBtn = document.getElementById('iPaidBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const payMsg = document.getElementById('payMsg');
+  const formMsg = document.getElementById('formMsg');
+  const downloadOrdersBtn = document.getElementById('downloadOrdersBtn');
+  const ordersArea = document.getElementById('ordersArea');
+  const resetBtn = document.getElementById('resetBtn');
+
+  // render product list
+  function renderProducts(){
+    productsEl.innerHTML = '';
+    packs.forEach(p=>{
+      const row = document.createElement('div');
+      row.className = 'diamond-row';
+      row.innerHTML = `
+        <div class="diamond-left">
+          <div class="diamond-icon" aria-hidden="true"></div>
+          <div>
+            <div style="font-weight:700">${p.diamonds} Diamonds</div>
+            <div class="small muted">Orig: ₹${p.priceOriginal} • Half Price: ₹${p.price}</div>
+          </div>
+          <span class="tag">40% LESS</span>
+        </div>
+        <div style="min-width:120px;display:flex;flex-direction:column;align-items:flex-end">
+          <div class="price">₹${p.price}</div>
+          <button style="margin-top:8px;padding:8px 10px;border-radius:8px;background:linear-gradient(90deg,#06b6d4,#0ea5a3);color:#042027;font-weight:700;cursor:pointer" data-id="${p.id}">Buy Now</button>
+        </div>
+      `;
+      productsEl.appendChild(row);
+    });
+
+    // attach buy handlers
+    productsEl.querySelectorAll('button[data-id]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const id = btn.getAttribute('data-id');
+        selectPack(id);
+      });
+    });
+
+    availCountEl.textContent = packs.length;
+  }
+
+  function selectPack(id){
+    selectedPack = packs.find(p=>p.id===id);
+    selectedPackInput.value = `${selectedPack.diamonds} Diamonds`;
+    amountInput.value = `₹${selectedPack.price}`;
+    formMsg.textContent = '';
+    // scroll to form
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  // generate UPI QR with amount and locked UPI ID
+  function buildUpiUri(amount, note='Purchase'){
+    // UPI URI format: upi://pay?pa=<payee-upi>&pn=<name>&am=<amount>&tn=<note>&cu=INR
+    const pa = encodeURIComponent(UPI_ID);
+    const pn = encodeURIComponent(PAYEE_NAME);
+    const am = encodeURIComponent(amount.toString());
+    const tn = encodeURIComponent(note);
+    return `upi://pay?pa=${pa}&pn=${pn}&am=${am}&tn=${tn}&cu=INR`;
+  }
+
+  function generateQr(amount){
+    const upiUri = buildUpiUri(amount, 'DiamondsPurchase');
+    // Use QR API — size 300x300, data = upiUri
+    const q = `${QR_API}?size=300x300&data=${encodeURIComponent(upiUri)}`;
+    return q;
+  }
+
+  // click Generate QR
+  generateQrBtn.addEventListener('click',()=>{
+    const ffid = ffidInput.value.trim();
+    const contact = contactInput.value.trim();
+    if(!selectedPack){ formMsg.style.color = '#ff8a8a'; formMsg.textContent = 'Please select a diamond pack to buy.'; return; }
+    if(!ffid){ formMsg.style.color = '#ff8a8a'; formMsg.textContent = 'Please enter your Free Fire ID.'; return; }
+    if(!contact){ formMsg.style.color = '#ff8a8a'; formMsg.textContent = 'Please enter your contact number.'; return; }
+
+    // show payment area with locked UPI and QR
+    afterPayArea.style.display = 'block';
+    const qUrl = generateQr(selectedPack.price);
+    qrImageDiv.innerHTML = `<img src="${qUrl}" alt="UPI QR" width="220" height="220" style="border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.6)"/>`;
+    payMsg.textContent = '';
+    // store current transaction draft in memory for confirm
+    window.currentDraft = {
+      id: 'TX' + Date.now(),
+      ffid, contact,
+      pack:selectedPack,
+      amount:selectedPack.price,
+      upi: UPI_ID,
+      payee: PAYEE_NAME,
+      time: new Date().toLocaleString()
+    };
+    // show locked UPI visually (inputs are disabled)
+    document.getElementById('upiId').value = UPI_ID;
+    document.getElementById('payeeName').value = PAYEE_NAME;
+  });
+
+  // Confirm payment (user clicks after paying in their UPI app)
+  iPaidBtn.addEventListener('click',()=>{
+    if(!window.currentDraft){ payMsg.style.color = '#ff8a8a'; payMsg.textContent = 'No payment in progress.'; return; }
+
+    // Save order in localStorage (seller will manually verify payment)
+    const orders = JSON.parse(localStorage.getItem(LS_ORDERS) || '[]');
+    orders.push(window.currentDraft);
+    localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
+    localStorage.setItem(LS_LAST, JSON.stringify(window.currentDraft));
+    payMsg.style.color = 'lightgreen';
+    payMsg.textContent = 'Payment marked as done (you must verify the payment in your UPI app). Receipt saved locally.';
+    // show short receipt and provide download link
+    const r = window.currentDraft;
+    lastPurchaseEl.textContent = `${r.pack.diamonds}D • ₹${r.amount} • ${r.time}`;
+    renderOrders();
+    // show download link for seller to keep record
+    const blob = new Blob([formatReceiptText(r)],{type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `receipt_${r.id}.txt`; a.textContent = 'Download Receipt';
+    a.style.display = 'inline-block';
+    a.style.marginTop = '8px';
+    a.style.color = '#0ff';
+    qrImageDiv.appendChild(a);
+    // clear draft
+    window.currentDraft = null;
+    // Optionally hide after a short time
+    // afterPayArea.style.display = 'none';
+  });
+
+  cancelBtn.addEventListener('click',()=>{
+    afterPayArea.style.display = 'none';
+    window.currentDraft = null;
+  });
+
+  // format receipt text
+  function formatReceiptText(r){
+    return `Receipt ID: ${r.id}\nTime: ${r.time}\nFree Fire ID: ${r.ffid}\nContact: ${r.contact}\nPack: ${r.pack.diamonds} Diamonds\nAmount Paid: ₹${r.amount}\nUPI: ${r.upi}\nPayee: ${r.payee}\n\nNOTE: Seller must manually verify the payment in their UPI app before delivering diamonds.`;
+  }
+
+  // render orders area
+  function renderOrders(){
+    const orders = JSON.parse(localStorage.getItem(LS_ORDERS) || '[]');
+    ordersArea.innerHTML = '';
+    if(orders.length===0){ ordersArea.innerHTML = '<div class="small muted">No saved orders yet</div>'; return; }
+    orders.slice().reverse().forEach(o=>{
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.style.marginBottom = '10px';
+      d.innerHTML = `<div style="font-weight:700">${o.pack.diamonds} Diamonds — ₹${o.amount}</div>
+                     <div class="small muted">FF ID: ${o.ffid} • Contact: ${o.contact}</div>
+                     <div class="small muted">Tx: ${o.id} • ${o.time}</div>`;
+      ordersArea.appendChild(d);
+    });
+  }
+
+  // download last receipt button
+  downloadOrdersBtn.addEventListener('click',()=>{
+    const last = JSON.parse(localStorage.getItem(LS_LAST) || 'null');
+    if(!last){ alert('No receipt saved yet'); return; }
+    const blob = new Blob([formatReceiptText(last)],{type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `receipt_${last.id}.txt`; a.click(); URL.revokeObjectURL(url);
+  });
+
+  // Reset button — clears form
+  resetBtn.addEventListener('click',()=>{
+    ffidInput.value=''; contactInput.value=''; selectedPackInput.value=''; amountInput.value=''; afterPayArea.style.display='none'; window.currentDraft=null;
+    formMsg.textContent='Form cleared';
+    setTimeout(()=>formMsg.textContent='',2000);
+  });
+
+  // init
+  renderProducts();
+  renderOrders();
+
+  // Prevent changing UPI from UI: inputs are disabled. (Users with code-edit ability could still change, but UI locks it)
+  document.getElementById('upiId').setAttribute('disabled','disabled');
+  document.getElementById('payeeName').setAttribute('disabled','disabled');
+
+  // Extra: copy UPI on click
+  document.getElementById('upiId').addEventListener('click',()=>{ navigator.clipboard.writeText(UPI_ID).then(()=>alert('UPI copied to clipboard')) });
+
+</script>
+</body>
+</html>
